@@ -33,7 +33,7 @@ public class ProductoController {
     @GetMapping
     public ResponseEntity<List<ConsultaProductoResposeDTO>> consultar() {
 
-        var productos = productoRepository.findAll();
+        var productos = productoRepository.listar();
 
         var response = productos.stream()
                 .filter(p -> p.getEstado() == EstadoProducto.DISPONIBLE)
@@ -49,7 +49,7 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductoCreadoResponseDTO> crear(@Valid @RequestBody CrearProductoRequestDTO dto) {
+    public ResponseEntity<ProductoCreadoResponseDTO> registrar(@Valid @RequestBody CrearProductoRequestDTO dto) {
 
         /*
         // Validar nombre duplicado
@@ -68,9 +68,7 @@ public class ProductoController {
 
         try {
             nuevoProducto = new Producto(dto.nombre(), dto.precio(), dto.stock());
-
-            productoRepository.save(nuevoProducto);
-
+            productoRepository.registrar(nuevoProducto);
 
         } catch (ReglaNegocioException e) {
 
@@ -118,56 +116,33 @@ public class ProductoController {
 
 
     @DeleteMapping("/{codigo}")
-    public ResponseEntity<Void> descontinuarProducto(@PathVariable long codigo) {
+    public ResponseEntity<Void> descontinuarProducto(@PathVariable int codigo) {
 
-        var producto = productos.stream()
-                .filter(p -> p.getCodigo() == codigo)
-                .findFirst();
+        var descontinuado = productoRepository.descontinuar(codigo);
 
-        if (producto.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        if (descontinuado) {
+            return ResponseEntity.noContent().build();
         }
-
-        producto.get().setEstado(EstadoProducto.DESCONTINUADO);
-
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{codigo}")
     public ResponseEntity<Void> actualizarProducto(
-            @PathVariable long codigo,
+            @PathVariable int codigo,
             @RequestBody ActualizarProductoRequestDTO request
     ) {
 
-        var producto = productos.stream()
-                .filter(p -> p.getCodigo() == codigo)
-                .findFirst();
+        var actualizado = productoRepository.actualizar(codigo,request.precio(), request.stock());
 
-        if (producto.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        if(actualizado){
+
+            return ResponseEntity.noContent().build();
         }
 
-        producto.ifPresent(p -> {
-
-            try {
-
-                p.setPrecio(request.precio());
-                p.agregarAlStock(request.stock() - p.getStock());
-
-            } catch (ReglaNegocioException e) {
-                throw new RuntimeException(e);
-            }
-
-        });
+        return ResponseEntity.badRequest().build();
 
 
-            /*
-            producto.get().setPrecio(request.precio());
-            producto.get().agregarAlStock(request.stock() - producto.get().getStock());
-             */
 
-
-        return ResponseEntity.noContent().build();
     }
 
 

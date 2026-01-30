@@ -21,7 +21,51 @@ public class ProductoRepository {
     }
 
 
-    public List<Producto> findAll() {
+
+    public boolean actualizar(int codigo, double precio, int stock) {
+
+        String sql = "UPDATE productos SET precio = ?, stock = ? WHERE codigo = ?";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setDouble(1, precio);
+            pstmt.setInt(2, stock);
+            pstmt.setInt(3, codigo);
+
+            int filasAfectadas = pstmt.executeUpdate();
+
+            return filasAfectadas > 0;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al actualizar precio y stock del producto con codigo: " + codigo, e);
+        }
+    }
+
+
+
+    public boolean descontinuar(int codigo) {
+
+        String sql = "UPDATE productos SET estado = ? WHERE codigo = ?";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, EstadoProducto.DESCONTINUADO.name());
+            pstmt.setInt(2, codigo);
+
+            int filasAfectadas = pstmt.executeUpdate();
+
+            return filasAfectadas > 0;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al descontinuar el producto con codigo: " + codigo, e);
+        }
+    }
+
+
+
+    public List<Producto> listar() {
         String sql = "SELECT * FROM productos";
         List<Producto> productos = new ArrayList<>();
         Producto producto;
@@ -48,12 +92,10 @@ public class ProductoRepository {
             throw new RuntimeException("Error al obtener productos: " + e.getMessage(), e);
         }
 
-
-
         return productos;
     }
 
-    public Producto save(Producto producto) {
+    public Producto registrar(Producto producto) {
 
         String sql = "INSERT INTO productos (codigo, nombre, precio, stock) VALUES (?, ?, ?, ?)";
 
@@ -105,11 +147,7 @@ public class ProductoRepository {
         } catch (SQLException | ReglaNegocioException e) {
             throw new RuntimeException("Error al consultar producto por codigo", e);
         }
-
         return Optional.empty();
     }
-
-
-
 
 }
