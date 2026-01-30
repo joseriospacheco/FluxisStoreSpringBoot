@@ -1,0 +1,114 @@
+package co.fluxis.store.entities;
+
+import co.fluxis.store.enums.EstadoProducto;
+import co.fluxis.store.exceptions.ReglaNegocioException;
+
+import java.time.LocalDate;
+import java.util.Random;
+
+
+public class Producto {
+
+    private final int codigo;
+    private final String nombre;
+    private double precio;
+    private int stock;
+    private EstadoProducto estado;
+    private final LocalDate fechaCreacion;
+
+    public Producto(String nombre, double precio, int stock) throws ReglaNegocioException {
+
+        if (precio <= 0) {
+
+            throw new ReglaNegocioException("El precio del producto no puede ser menor o igual a cero");
+        }
+
+        if (stock < 0) {
+
+            throw new ReglaNegocioException("El stock del producto no puede ser menor que cero");
+        }
+
+        this.codigo = generarCodigo();
+        this.nombre = nombre;
+        this.precio = precio;
+        this.stock = stock;
+        this.estado = EstadoProducto.DISPONIBLE;
+        this.fechaCreacion = LocalDate.now();
+    }
+
+
+    public int getCodigo() {
+        return codigo;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public double getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(double precio) throws ReglaNegocioException {
+
+        if (precio <= 0) {
+
+            throw new ReglaNegocioException("La precio del producto " + nombre + "+ no puede ser menor o igual que cero");
+        }
+
+        this.precio = precio;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public EstadoProducto getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoProducto estado) {
+        this.estado = estado;
+    }
+
+    public LocalDate getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void agregarAlStock(int cantidad) throws ReglaNegocioException {
+
+        if (cantidad <= 0) {
+
+            throw new ReglaNegocioException("La cantidad para agrgar al stock del producto " + nombre + "+ no puede ser menor o igual que cero");
+        }
+
+        this.stock += cantidad;
+    }
+
+    public void removerDelStock(int cantidad) throws ReglaNegocioException {
+
+        if (this.stock >= cantidad) {
+            this.stock -= cantidad;
+        } else {
+
+            throw new ReglaNegocioException("La cantidad a remover del stock del producto " + nombre + " no puede ser mayor a stock actual (" + stock + ")");
+        }
+
+        if (this.stock == 0) {
+            estado = EstadoProducto.AGOTADO;
+        }
+    }
+
+    private int generarCodigo() {
+
+        return new Random().nextInt(900000) + 100000;
+    }
+
+
+    @Override
+    public String toString() {
+        return "ID: " + codigo + " | Nombre: " + nombre + " | Precio: $" + String.format("%,.0f", precio) + " | Stock: " + stock + " | Estado: " + estado;
+    }
+
+
+}
