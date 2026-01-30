@@ -22,6 +22,8 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation("mysql:mysql-connector-java:8.0.33")
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'  // ← AGREGA ESTA LÍNEA
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 

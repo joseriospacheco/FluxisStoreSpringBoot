@@ -9,12 +9,19 @@ import java.util.Random;
 
 public class Producto {
 
-    private final int codigo;
-    private final String nombre;
+    private int codigo;
+    private String nombre;
     private double precio;
     private int stock;
     private EstadoProducto estado;
-    private final LocalDate fechaCreacion;
+
+    public Producto() {
+        this.codigo = 0;
+        this.nombre = "";
+        this.precio = 0;
+        this.stock = 0;
+
+    }
 
     public Producto(String nombre, double precio, int stock) throws ReglaNegocioException {
 
@@ -33,7 +40,7 @@ public class Producto {
         this.precio = precio;
         this.stock = stock;
         this.estado = EstadoProducto.DISPONIBLE;
-        this.fechaCreacion = LocalDate.now();
+
     }
 
 
@@ -47,6 +54,11 @@ public class Producto {
 
     public double getPrecio() {
         return precio;
+    }
+
+
+    public void setCodigo(int codigo) {
+        this.codigo = codigo;
     }
 
     public void setPrecio(double precio) throws ReglaNegocioException {
@@ -71,9 +83,6 @@ public class Producto {
         this.estado = estado;
     }
 
-    public LocalDate getFechaCreacion() {
-        return fechaCreacion;
-    }
 
     public void agregarAlStock(int cantidad) throws ReglaNegocioException {
 
@@ -111,4 +120,12 @@ public class Producto {
     }
 
 
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void setStock(int stock) {
+
+        this.stock = stock;
+    }
 }

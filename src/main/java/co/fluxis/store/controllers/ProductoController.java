@@ -7,12 +7,12 @@ import co.fluxis.store.dtos.responses.ProductoCreadoResponseDTO;
 import co.fluxis.store.entities.Producto;
 import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.ReglaNegocioException;
+import co.fluxis.store.repositories.ProductoRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -21,49 +21,19 @@ public class ProductoController {
 
     private static List<Producto> productos;
 
-    public ProductoController() {
 
-        cargarProductosIniciales();
+    private final ProductoRepository productoRepository;
 
-    }
+    public ProductoController(ProductoRepository productoRepository) {
 
-    @PostMapping
-    public ResponseEntity<ProductoCreadoResponseDTO> crear(@Valid @RequestBody CrearProductoRequestDTO dto) {
-
-        // Validar nombre duplicado
-        var nombreExiste = productos.stream()
-                .anyMatch(p -> p.getNombre().equalsIgnoreCase(dto.nombre()));
-
-        if (nombreExiste) {
-            //throw new ReglaNegocioException("Ya existe un producto con el nombre: " + dto.nombre());
-            return ResponseEntity.unprocessableContent().build();
-        }
-
-        Producto nuevoProducto = null;
-
-        try {
-            nuevoProducto = new Producto(dto.nombre(), dto.precio(), dto.stock());
-
-        } catch (ReglaNegocioException e) {
-
-            return ResponseEntity.unprocessableContent().build();
-
-        } catch (Exception e) {
-
-            return ResponseEntity.badRequest().build();
-        }
-
-        productos.add(nuevoProducto);
-
-        var productoCreado = new ProductoCreadoResponseDTO(nuevoProducto.getCodigo(), nuevoProducto.getNombre(), nuevoProducto.getPrecio());
-
-        return new ResponseEntity<>(productoCreado, HttpStatus.CREATED);
+        this.productoRepository = productoRepository;
 
     }
-
 
     @GetMapping
     public ResponseEntity<List<ConsultaProductoResposeDTO>> consultar() {
+
+        var productos = productoRepository.findAll();
 
         var response = productos.stream()
                 .filter(p -> p.getEstado() == EstadoProducto.DISPONIBLE)
@@ -78,13 +48,58 @@ public class ProductoController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping
+    public ResponseEntity<ProductoCreadoResponseDTO> crear(@Valid @RequestBody CrearProductoRequestDTO dto) {
+
+        /*
+        // Validar nombre duplicado
+        var nombreExiste = productos.stream()
+                .anyMatch(p -> p.getDescripcion().equalsIgnoreCase(dto.nombre()));
+
+        if (nombreExiste) {
+            //throw new ReglaNegocioException("Ya existe un producto con el nombre: " + dto.nombre());
+            return ResponseEntity.unprocessableContent().build();
+        }
+
+
+        */
+
+        Producto nuevoProducto = null;
+
+        try {
+            nuevoProducto = new Producto(dto.nombre(), dto.precio(), dto.stock());
+
+            productoRepository.save(nuevoProducto);
+
+
+        } catch (ReglaNegocioException e) {
+
+            return ResponseEntity.unprocessableContent().build();
+
+        } catch (Exception e) {
+
+            return ResponseEntity.badRequest().build();
+        }
+
+
+
+        var productoCreado = new ProductoCreadoResponseDTO(nuevoProducto.getCodigo(), nuevoProducto.getNombre(), nuevoProducto.getPrecio());
+
+        return new ResponseEntity<>(productoCreado, HttpStatus.CREATED);
+
+    }
+
+
+
+
+
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<ConsultaProductoResposeDTO> consultar(@PathVariable long codigo) {
+    public ResponseEntity<ConsultaProductoResposeDTO> consultar(@PathVariable int codigo) {
 
-        var producto = productos.stream()
-                .filter(p -> p.getCodigo() == codigo)
-                .findFirst();
+
+
+        var producto = productoRepository.consultarPorCodigo(codigo);
 
         if (producto.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -155,25 +170,5 @@ public class ProductoController {
         return ResponseEntity.noContent().build();
     }
 
-    private static void cargarProductosIniciales() {
-        try {
-
-            productos = new ArrayList<>();
-
-            productos.add(new Producto("Laptop Lenovo IdeaPad 3", 2450000, 5));
-            productos.add(new Producto("Mouse Logitech Inalambrico", 85000, 30));
-            productos.add(new Producto("Teclado Mecanico Redragon", 195000, 12));
-            productos.add(new Producto("Monitor Samsung 24 Pulgadas", 920000, 7));
-            productos.add(new Producto("Disco Solido SSD Kingston 480GB", 210000, 18));
-            productos.add(new Producto("Memoria RAM DDR4 16GB Corsair", 265000, 10));
-            productos.add(new Producto("Audifonos Gamer HyperX", 175000, 20));
-            productos.add(new Producto("Impresora Epson EcoTank L3250", 1350000, 4));
-            productos.add(new Producto("Router TP Link Archer C6", 185000, 9));
-            productos.add(new Producto("Webcam Logitech HD 1080p", 320000, 6));
-
-        } catch (ReglaNegocioException e) {
-            System.out.println("Error cargando productos de prueba: " + e.getMessage());
-        }
-    }
 
 }
