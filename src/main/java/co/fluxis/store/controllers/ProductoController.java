@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/productos")
-public class ProductoController {0
+public class ProductoController {
 
     private final ProductoRepository productoRepository;
     public ProductoController(ProductoRepository productoRepository) {
@@ -64,36 +64,41 @@ public class ProductoController {0
 
 
     @PostMapping
-    public ResponseEntity<ProductoCreadoResponseDTO> registrar(@Valid @RequestBody CrearProductoRequestDTO dto) {
+    public ResponseEntity<ProductoCreadoResponseDTO> registrar(
+            @Valid @RequestBody CrearProductoRequestDTO dto) {
 
-
-        var nombreExiste = productoRepository.existePorNombre(dto.nombre());
-
-        if (nombreExiste) {
-
+        // Validación de unicidad
+        if (productoRepository.existePorNombre(dto.nombre())) {
             return ResponseEntity.unprocessableContent().build();
         }
 
-        Producto nuevoProducto = null;
+        Producto nuevoProducto;
 
         try {
-            nuevoProducto = new Producto(dto.nombre(), dto.precio(), dto.stock());
+            nuevoProducto = new Producto(
+                    dto.nombre(),
+                    dto.precio(),
+                    dto.stock()
+            );
+
             productoRepository.registrar(nuevoProducto);
+            var productoCreado = new ProductoCreadoResponseDTO(
+                    nuevoProducto.getCodigo(),
+                    nuevoProducto.getNombre(),
+                    nuevoProducto.getPrecio()
+            );
 
+            return new ResponseEntity<>(productoCreado, HttpStatus.CREATED);
         } catch (ReglaNegocioException e) {
-
             return ResponseEntity.unprocessableContent().build();
 
         } catch (Exception e) {
-
             return ResponseEntity.badRequest().build();
         }
 
-        var productoCreado = new ProductoCreadoResponseDTO(nuevoProducto.getCodigo(), nuevoProducto.getNombre(), nuevoProducto.getPrecio());
-
-        return new ResponseEntity<>(productoCreado, HttpStatus.CREATED);
 
     }
+
 
 
     @GetMapping("/{codigo}")
