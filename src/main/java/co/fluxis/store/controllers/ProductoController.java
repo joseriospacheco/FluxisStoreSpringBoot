@@ -30,6 +30,48 @@ public class ProductoController {
 
     }
 
+
+    @GetMapping
+    public ResponseEntity<List<ConsultaProductoResposeDTO>> buscarProductos(
+            @RequestParam(required = false) Integer codigo,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) EstadoProducto estado,
+            @RequestParam(required = false) Double precioMin,
+            @RequestParam(required = false) Double precioMax,
+            @RequestParam(required = false) Integer stockMin,
+            @RequestParam(required = false) Integer stockMax
+    ) {
+
+        var productos = productoRepository.buscarPorFiltros(
+                codigo,
+                nombre,
+                estado,
+                precioMin,
+                precioMax,
+                stockMin,
+                stockMax
+        );
+
+
+        var response = productos.stream()
+                .map(p -> new ConsultaProductoResposeDTO(
+                        p.getCodigo(),
+                        p.getNombre(),
+                        p.getPrecio(),
+                        p.getStock(),
+                        p.getEstado()
+                )).toList();
+
+        if (productos.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
+    /*
     @GetMapping
     public ResponseEntity<List<ConsultaProductoResposeDTO>> consultar() {
 
@@ -48,12 +90,14 @@ public class ProductoController {
         return ResponseEntity.ok(response);
     }
 
+
+    */
+
     @PostMapping
     public ResponseEntity<ProductoCreadoResponseDTO> registrar(@Valid @RequestBody CrearProductoRequestDTO dto) {
 
 
-
-        var nombreExiste =productoRepository.existePorNombre(dto.nombre());
+        var nombreExiste = productoRepository.existePorNombre(dto.nombre());
 
         if (nombreExiste) {
 
@@ -82,13 +126,8 @@ public class ProductoController {
     }
 
 
-
-
-
-
     @GetMapping("/{codigo}")
     public ResponseEntity<ConsultaProductoResposeDTO> consultar(@PathVariable int codigo) {
-
 
 
         var producto = productoRepository.consultarPorCodigo(codigo);
@@ -126,15 +165,14 @@ public class ProductoController {
             @RequestBody ActualizarProductoRequestDTO request
     ) {
 
-        var actualizado = productoRepository.actualizar(codigo,request.precio(), request.stock());
+        var actualizado = productoRepository.actualizar(codigo, request.precio(), request.stock());
 
-        if(actualizado){
+        if (actualizado) {
 
             return ResponseEntity.noContent().build();
         }
 
         return ResponseEntity.badRequest().build();
-
 
 
     }

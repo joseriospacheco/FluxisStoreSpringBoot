@@ -150,6 +150,90 @@ public class ProductoRepository {
         return Optional.empty();
     }
 
+    public List<Producto> buscarPorFiltros(
+            Integer codigo,
+            String nombre,
+            EstadoProducto estado,
+            Double precioMin,
+            Double precioMax,
+            Integer stockMin,
+            Integer stockMax
+    ) {
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT codigo, nombre, precio, stock, estado FROM productos WHERE 1=1"
+        );
+
+        List<Object> parametros = new ArrayList<>();
+
+        if (codigo != null) {
+            sql.append(" AND codigo = ?");
+            parametros.add(codigo);
+        }
+
+        if (nombre != null && !nombre.isBlank()) {
+            sql.append(" AND LOWER(nombre) LIKE LOWER(?)");
+            parametros.add("%" + nombre + "%");
+        }
+
+        if (estado != null) {
+            sql.append(" AND estado = ?");
+            parametros.add(estado.name());
+        }
+
+        if (precioMin != null) {
+            sql.append(" AND precio >= ?");
+            parametros.add(precioMin);
+        }
+
+        if (precioMax != null) {
+            sql.append(" AND precio <= ?");
+            parametros.add(precioMax);
+        }
+
+        if (stockMin != null) {
+            sql.append(" AND stock >= ?");
+            parametros.add(stockMin);
+        }
+
+        if (stockMax != null) {
+            sql.append(" AND stock <= ?");
+            parametros.add(stockMax);
+        }
+
+        List<Producto> productos = new ArrayList<>();
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < parametros.size(); i++) {
+                pstmt.setObject(i + 1, parametros.get(i));
+            }
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+
+                while (rs.next()) {
+                    Producto producto = new Producto();
+                    producto.setCodigo(rs.getInt("codigo"));
+                    producto.setNombre(rs.getString("nombre"));
+                    producto.setPrecio(rs.getDouble("precio"));
+                    producto.setStock(rs.getInt("stock"));
+                    producto.setEstado(
+                            EstadoProducto.valueOf(rs.getString("estado"))
+                    );
+
+                    productos.add(producto);
+                }
+            }
+
+        } catch (SQLException | ReglaNegocioException e) {
+            throw new RuntimeException("Error al buscar productos por filtros", e);
+        }
+
+        return productos;
+    }
+
+
 
     public boolean existePorNombre(String nombre) {
 
