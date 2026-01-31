@@ -51,18 +51,14 @@ public class ProductoController {
     @PostMapping
     public ResponseEntity<ProductoCreadoResponseDTO> registrar(@Valid @RequestBody CrearProductoRequestDTO dto) {
 
-        /*
-        // Validar nombre duplicado
-        var nombreExiste = productos.stream()
-                .anyMatch(p -> p.getDescripcion().equalsIgnoreCase(dto.nombre()));
+
+
+        var nombreExiste =productoRepository.existePorNombre(dto.nombre());
 
         if (nombreExiste) {
-            //throw new ReglaNegocioException("Ya existe un producto con el nombre: " + dto.nombre());
+
             return ResponseEntity.unprocessableContent().build();
         }
-
-
-        */
 
         Producto nuevoProducto = null;
 
@@ -78,8 +74,6 @@ public class ProductoController {
 
             return ResponseEntity.badRequest().build();
         }
-
-
 
         var productoCreado = new ProductoCreadoResponseDTO(nuevoProducto.getCodigo(), nuevoProducto.getNombre(), nuevoProducto.getPrecio());
 

@@ -150,4 +150,24 @@ public class ProductoRepository {
         return Optional.empty();
     }
 
+
+    public boolean existePorNombre(String nombre) {
+
+        String sql = "SELECT 1 FROM productos WHERE LOWER(nombre) = LOWER(?) LIMIT 1";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, nombre);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al validar producto por nombre", e);
+        }
+    }
+
+
 }
