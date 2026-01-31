@@ -22,13 +22,11 @@ public class ProductoController {
     private static List<Producto> productos;
 
     public ProductoController() {
-
         cargarProductosIniciales();
-
     }
 
     @PostMapping
-    public ResponseEntity<ProductoCreadoResponseDTO> crear(@Valid @RequestBody CrearProductoRequestDTO dto) {
+    public ResponseEntity<ProductoCreadoResponseDTO> registrar(@Valid @RequestBody CrearProductoRequestDTO dto) {
 
         // Validar nombre duplicado
         var nombreExiste = productos.stream()
@@ -80,7 +78,7 @@ public class ProductoController {
 
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<ConsultaProductoResposeDTO> consultar(@PathVariable long codigo) {
+    public ResponseEntity<ConsultaProductoResposeDTO> consultar(@PathVariable int codigo) {
 
         var producto = productos.stream()
                 .filter(p -> p.getCodigo() == codigo)
@@ -103,7 +101,7 @@ public class ProductoController {
 
 
     @DeleteMapping("/{codigo}")
-    public ResponseEntity<Void> descontinuarProducto(@PathVariable long codigo) {
+    public ResponseEntity<Void> descontinuarProducto(@PathVariable int codigo) {
 
         var producto = productos.stream()
                 .filter(p -> p.getCodigo() == codigo)
