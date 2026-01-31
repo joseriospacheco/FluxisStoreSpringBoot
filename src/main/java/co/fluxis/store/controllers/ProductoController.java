@@ -61,20 +61,49 @@ public class ProductoController {
 
 
     @GetMapping
-    public ResponseEntity<List<ConsultaProductoResposeDTO>> consultar() {
+    public ResponseEntity<List<ConsultaProductoResposeDTO>> buscarProductos(
+            @RequestParam(required = false) Integer codigo,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) EstadoProducto estado,
+            @RequestParam(required = false) Double precioMin,
+            @RequestParam(required = false) Double precioMax,
+            @RequestParam(required = false) Integer stockMin,
+            @RequestParam(required = false) Integer stockMax
+    ) {
 
         var response = productos.stream()
-                .filter(p -> p.getEstado() == EstadoProducto.DISPONIBLE)
+
+                .filter(p -> codigo == null || p.getCodigo() == codigo)
+
+                .filter(p -> nombre == null ||
+                        p.getNombre().toLowerCase().contains(nombre.toLowerCase()))
+
+                .filter(p -> estado == null || p.getEstado() == estado)
+
+                .filter(p -> precioMin == null || p.getPrecio() >= precioMin)
+
+                .filter(p -> precioMax == null || p.getPrecio() <= precioMax)
+
+                .filter(p -> stockMin == null || p.getStock() >= stockMin)
+
+                .filter(p -> stockMax == null || p.getStock() <= stockMax)
+
                 .map(p -> new ConsultaProductoResposeDTO(
                         p.getCodigo(),
                         p.getNombre(),
                         p.getPrecio(),
                         p.getStock(),
                         p.getEstado()
-                )).toList();
+                ))
+                .toList();
+
+        if (response.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
 
         return ResponseEntity.ok(response);
     }
+
 
 
     @GetMapping("/{codigo}")
