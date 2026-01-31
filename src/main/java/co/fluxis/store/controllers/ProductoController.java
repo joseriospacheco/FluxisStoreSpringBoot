@@ -17,19 +17,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/productos")
-public class ProductoController {
-
-    private static List<Producto> productos;
-
+public class ProductoController {0
 
     private final ProductoRepository productoRepository;
-
     public ProductoController(ProductoRepository productoRepository) {
-
         this.productoRepository = productoRepository;
-
     }
-
 
     @GetMapping
     public ResponseEntity<List<ConsultaProductoResposeDTO>> buscarProductos(
@@ -69,29 +62,6 @@ public class ProductoController {
         return ResponseEntity.ok(response);
     }
 
-
-
-    /*
-    @GetMapping
-    public ResponseEntity<List<ConsultaProductoResposeDTO>> consultar() {
-
-        var productos = productoRepository.listar();
-
-        var response = productos.stream()
-                .filter(p -> p.getEstado() == EstadoProducto.DISPONIBLE)
-                .map(p -> new ConsultaProductoResposeDTO(
-                        p.getCodigo(),
-                        p.getNombre(),
-                        p.getPrecio(),
-                        p.getStock(),
-                        p.getEstado()
-                )).toList();
-
-        return ResponseEntity.ok(response);
-    }
-
-
-    */
 
     @PostMapping
     public ResponseEntity<ProductoCreadoResponseDTO> registrar(@Valid @RequestBody CrearProductoRequestDTO dto) {
@@ -171,11 +141,6 @@ public class ProductoController {
 
             return ResponseEntity.noContent().build();
         }
-
         return ResponseEntity.badRequest().build();
-
-
     }
-
-
 }
