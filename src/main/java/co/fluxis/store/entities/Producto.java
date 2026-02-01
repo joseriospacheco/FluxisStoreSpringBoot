@@ -14,7 +14,6 @@ public class Producto {
     private double precio;
     private int stock;
     private EstadoProducto estado;
-    private final LocalDate fechaCreacion;
 
     public Producto(String nombre, double precio, int stock) throws ReglaNegocioException {
 
@@ -33,7 +32,7 @@ public class Producto {
         this.precio = precio;
         this.stock = stock;
         this.estado = EstadoProducto.DISPONIBLE;
-        this.fechaCreacion = LocalDate.now();
+
     }
 
 
@@ -71,9 +70,6 @@ public class Producto {
         this.estado = estado;
     }
 
-    public LocalDate getFechaCreacion() {
-        return fechaCreacion;
-    }
 
     public void agregarAlStock(int cantidad) throws ReglaNegocioException {
 
