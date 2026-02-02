@@ -172,13 +172,6 @@ public class ProductoController {
 
         });
 
-
-            /*
-            producto.get().setPrecio(request.precio());
-            producto.get().agregarAlStock(request.stock() - producto.get().getStock());
-             */
-
-
         return ResponseEntity.noContent().build();
     }
 
