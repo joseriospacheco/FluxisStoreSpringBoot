@@ -164,7 +164,7 @@ public class ProductoController {
             try {
 
                 p.setPrecio(request.precio());
-                p.agregarAlStock(request.stock() - p.getStock());
+                p.setEstado(request.estado());
 
             } catch (ReglaNegocioException e) {
                 throw new RuntimeException(e);
