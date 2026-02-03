@@ -3,7 +3,6 @@ package co.fluxis.store.entities;
 import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.ReglaNegocioException;
 
-import java.time.LocalDate;
 import java.util.Random;
 
 
@@ -15,7 +14,7 @@ public class Producto {
     private int stock;
     private EstadoProducto estado;
 
-    public Producto(String nombre, double precio, int stock) throws ReglaNegocioException {
+    public Producto(String nombre, double precio, int stock)  {
 
         if (precio <= 0) {
 
@@ -48,7 +47,7 @@ public class Producto {
         return precio;
     }
 
-    public void setPrecio(double precio) throws ReglaNegocioException {
+    public void setPrecio(double precio) {
 
         if (precio <= 0) {
 
@@ -71,7 +70,7 @@ public class Producto {
     }
 
 
-    public void agregarAlStock(int cantidad) throws ReglaNegocioException {
+    public void agregarAlStock(int cantidad)  {
 
         if (cantidad <= 0) {
 
@@ -81,7 +80,7 @@ public class Producto {
         this.stock += cantidad;
     }
 
-    public void removerDelStock(int cantidad) throws ReglaNegocioException {
+    public void removerDelStock(int cantidad) {
 
         if (this.stock >= cantidad) {
             this.stock -= cantidad;
