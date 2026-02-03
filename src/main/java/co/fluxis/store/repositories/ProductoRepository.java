@@ -22,15 +22,15 @@ public class ProductoRepository {
 
 
 
-    public boolean actualizar(int codigo, double precio, int stock) {
+    public boolean actualizar(int codigo,String nombre, double precio) {
 
-        String sql = "UPDATE productos SET precio = ?, stock = ? WHERE codigo = ?";
+        String sql = "UPDATE productos SET  nombre = ?, precio = ? WHERE codigo = ?";
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setDouble(1, precio);
-            pstmt.setInt(2, stock);
+            pstmt.setString(1, nombre);
+            pstmt.setDouble(2, precio);
             pstmt.setInt(3, codigo);
 
             int filasAfectadas = pstmt.executeUpdate();

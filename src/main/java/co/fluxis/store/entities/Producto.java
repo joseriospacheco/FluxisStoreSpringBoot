@@ -23,15 +23,13 @@ public class Producto {
 
     }
 
-    public Producto(String nombre, double precio, int stock) throws ReglaNegocioException {
+    public Producto(String nombre, double precio, int stock)  {
 
         if (precio <= 0) {
-
             throw new ReglaNegocioException("El precio del producto no puede ser menor o igual a cero");
         }
 
         if (stock < 0) {
-
             throw new ReglaNegocioException("El stock del producto no puede ser menor que cero");
         }
 
@@ -61,7 +59,7 @@ public class Producto {
         this.codigo = codigo;
     }
 
-    public void setPrecio(double precio) throws ReglaNegocioException {
+    public void setPrecio(double precio)  {
 
         if (precio <= 0) {
 
@@ -84,22 +82,19 @@ public class Producto {
     }
 
 
-    public void agregarAlStock(int cantidad) throws ReglaNegocioException {
+    public void agregarAlStock(int cantidad)  {
 
         if (cantidad <= 0) {
-
             throw new ReglaNegocioException("La cantidad para agrgar al stock del producto " + nombre + "+ no puede ser menor o igual que cero");
         }
-
         this.stock += cantidad;
     }
 
-    public void removerDelStock(int cantidad) throws ReglaNegocioException {
+    public void removerDelStock(int cantidad)  {
 
         if (this.stock >= cantidad) {
             this.stock -= cantidad;
         } else {
-
             throw new ReglaNegocioException("La cantidad a remover del stock del producto " + nombre + " no puede ser mayor a stock actual (" + stock + ")");
         }
 
@@ -109,23 +104,19 @@ public class Producto {
     }
 
     private int generarCodigo() {
-
         return new Random().nextInt(900000) + 100000;
     }
-
 
     @Override
     public String toString() {
         return "ID: " + codigo + " | Nombre: " + nombre + " | Precio: $" + String.format("%,.0f", precio) + " | Stock: " + stock + " | Estado: " + estado;
     }
 
-
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
 
     public void setStock(int stock) {
-
         this.stock = stock;
     }
 }

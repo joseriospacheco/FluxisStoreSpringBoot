@@ -140,7 +140,7 @@ public class ProductoController {
             @RequestBody ActualizarProductoRequestDTO request
     ) {
 
-        var actualizado = productoRepository.actualizar(codigo, request.precio(), request.stock());
+        var actualizado = productoRepository.actualizar(codigo,request.nombre(), request.precio());
 
         if (actualizado) {
 
