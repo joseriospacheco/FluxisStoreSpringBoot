@@ -2,7 +2,7 @@ package co.fluxis.store.dtos.responses;
 
 import co.fluxis.store.enums.EstadoProducto;
 
-public record ConsultaProductoResposeDTO(
+public record ConsultaProductoRespose(
         long codigo,
         String nombre,
         Double precio,

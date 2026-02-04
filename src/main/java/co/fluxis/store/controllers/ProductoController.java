@@ -1,9 +1,9 @@
 package co.fluxis.store.controllers;
 
-import co.fluxis.store.dtos.requests.ActualizarProductoRequestDTO;
-import co.fluxis.store.dtos.responses.ConsultaProductoResposeDTO;
-import co.fluxis.store.dtos.requests.CrearProductoRequestDTO;
-import co.fluxis.store.dtos.responses.ProductoCreadoResponseDTO;
+import co.fluxis.store.dtos.requests.ActualizarProductoRequest;
+import co.fluxis.store.dtos.responses.ConsultaProductoRespose;
+import co.fluxis.store.dtos.requests.CrearProductoRequest;
+import co.fluxis.store.dtos.responses.ProductoCreadoResponse;
 import co.fluxis.store.entities.Producto;
 import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.ReglaNegocioException;
@@ -26,7 +26,7 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductoCreadoResponseDTO> registrar(@Valid @RequestBody CrearProductoRequestDTO dto) {
+    public ResponseEntity<ProductoCreadoResponse> registrar(@Valid @RequestBody CrearProductoRequest dto) {
 
         // Validar nombre duplicado
         var nombreExiste = productos.stream()
@@ -53,7 +53,7 @@ public class ProductoController {
 
         productos.add(nuevoProducto);
 
-        var productoCreado = new ProductoCreadoResponseDTO(nuevoProducto.getCodigo(), nuevoProducto.getNombre(), nuevoProducto.getPrecio());
+        var productoCreado = new ProductoCreadoResponse(nuevoProducto.getCodigo(), nuevoProducto.getNombre(), nuevoProducto.getPrecio());
 
         return new ResponseEntity<>(productoCreado, HttpStatus.CREATED);
 
@@ -61,7 +61,7 @@ public class ProductoController {
 
 
     @GetMapping
-    public ResponseEntity<List<ConsultaProductoResposeDTO>> buscarProductos(
+    public ResponseEntity<List<ConsultaProductoRespose>> buscarProductos(
             @RequestParam(required = false) Integer codigo,
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) EstadoProducto estado,
@@ -88,7 +88,7 @@ public class ProductoController {
 
                 .filter(p -> stockMax == null || p.getStock() <= stockMax)
 
-                .map(p -> new ConsultaProductoResposeDTO(
+                .map(p -> new ConsultaProductoRespose(
                         p.getCodigo(),
                         p.getNombre(),
                         p.getPrecio(),
@@ -107,7 +107,7 @@ public class ProductoController {
 
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<ConsultaProductoResposeDTO> consultar(@PathVariable int codigo) {
+    public ResponseEntity<ConsultaProductoRespose> consultar(@PathVariable int codigo) {
 
         var producto = productos.stream()
                 .filter(p -> p.getCodigo() == codigo)
@@ -117,7 +117,7 @@ public class ProductoController {
             return ResponseEntity.notFound().build();
         }
 
-        var response = new ConsultaProductoResposeDTO(
+        var response = new ConsultaProductoRespose(
                 producto.get().getCodigo(),
                 producto.get().getNombre(),
                 producto.get().getPrecio(),
@@ -130,7 +130,7 @@ public class ProductoController {
 
 
     @DeleteMapping("/{codigo}")
-    public ResponseEntity<Void> descontinuarProducto(@PathVariable int codigo) {
+    public ResponseEntity<Void> descontinuar(@PathVariable int codigo) {
 
         var producto = productos.stream()
                 .filter(p -> p.getCodigo() == codigo)
@@ -140,15 +140,14 @@ public class ProductoController {
             return ResponseEntity.notFound().build();
         }
 
-        producto.get().setEstado(EstadoProducto.DESCONTINUADO);
-
+        producto.ifPresent(Producto::descontinuar);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{codigo}")
-    public ResponseEntity<Void> actualizarProducto(
+    public ResponseEntity<Void> actualizar(
             @PathVariable long codigo,
-            @RequestBody ActualizarProductoRequestDTO request
+            @RequestBody ActualizarProductoRequest request
     ) {
 
         var producto = productos.stream()
@@ -160,16 +159,8 @@ public class ProductoController {
         }
 
         producto.ifPresent(p -> {
-
-            try {
-
                 p.setPrecio(request.precio());
-                p.setEstado(request.estado());
-
-            } catch (ReglaNegocioException e) {
-                throw new RuntimeException(e);
-            }
-
+                p.setNombre(request.nombre());
         });
 
         return ResponseEntity.noContent().build();
@@ -195,5 +186,6 @@ public class ProductoController {
             System.out.println("Error cargando productos de prueba: " + e.getMessage());
         }
     }
+
 
 }
