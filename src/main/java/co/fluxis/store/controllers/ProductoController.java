@@ -18,9 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/productos")
 public class ProductoController {
-
-    private static List<Producto> productos;
-
+    private final static List<Producto> productos = new ArrayList<>();
     public ProductoController() {
         cargarProductosIniciales();
     }
@@ -70,18 +68,11 @@ public class ProductoController {
         var response = productos.stream()
 
                 .filter(p -> codigo == null || p.getCodigo() == codigo)
-
-                .filter(p -> nombre == null ||
-                        p.getNombre().toLowerCase().contains(nombre.toLowerCase()))
-
+                .filter(p -> nombre == null || p.getNombre().toLowerCase().contains(nombre.toLowerCase()))
                 .filter(p -> estado == null || p.getEstado() == estado)
-
                 .filter(p -> precioMin == null || p.getPrecio() >= precioMin)
-
                 .filter(p -> precioMax == null || p.getPrecio() <= precioMax)
-
                 .filter(p -> stockMin == null || p.getStock() >= stockMin)
-
                 .filter(p -> stockMax == null || p.getStock() <= stockMax)
 
                 .map(p -> new ConsultaProductoRespose(
@@ -96,11 +87,8 @@ public class ProductoController {
         if (response.isEmpty()) {
                 return ResponseEntity.notFound().build();
         }
-
         return ResponseEntity.ok(response);
     }
-
-
 
     @GetMapping("/{codigo}")
     public ResponseEntity<ConsultaProductoRespose> consultar(@PathVariable int codigo) {
@@ -123,7 +111,6 @@ public class ProductoController {
 
         return ResponseEntity.ok(response);
     }
-
 
     @DeleteMapping("/{codigo}")
     public ResponseEntity<Void> descontinuar(@PathVariable int codigo) {
@@ -166,24 +153,17 @@ public class ProductoController {
 
         });
 
-
         return ResponseEntity.noContent().build();
     }
 
-
-
-
     private  boolean existeProductoConNombre(String nombre){
 
-        return  productos.stream()
-                .anyMatch(p -> p.getNombre().equalsIgnoreCase(nombre));
+        return  productos.stream().anyMatch(p -> p.getNombre().equalsIgnoreCase(nombre));
 
     }
 
     private static void cargarProductosIniciales() {
         try {
-
-            productos = new ArrayList<>();
 
             productos.add(new Producto("Laptop Lenovo IdeaPad 3", 2450000, 5));
             productos.add(new Producto("Mouse Logitech Inalambrico", 85000, 30));
