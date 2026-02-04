@@ -6,57 +6,36 @@ import co.fluxis.store.dtos.requests.CrearProductoRequest;
 import co.fluxis.store.dtos.responses.ProductoCreadoResponse;
 import co.fluxis.store.entities.Producto;
 import co.fluxis.store.enums.EstadoProducto;
-import co.fluxis.store.exceptions.ReglaNegocioException;
+import co.fluxis.store.services.ProductoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("api/productos")
 public class ProductoController {
 
-    private static List<Producto> productos;
+    private final ProductoService productoService;
 
-    public ProductoController() {
-        cargarProductosIniciales();
+    public ProductoController(ProductoService productoService) {
+        this.productoService = productoService;
     }
 
     @PostMapping
-    public ResponseEntity<ProductoCreadoResponse> registrar(@Valid @RequestBody CrearProductoRequest dto) {
+    public ResponseEntity<ProductoCreadoResponse> registrar(
+            @Valid @RequestBody CrearProductoRequest dto) {
 
-        // Validar nombre duplicado
-        var nombreExiste = productos.stream()
-                .anyMatch(p -> p.getNombre().equalsIgnoreCase(dto.nombre()));
+        Producto producto = productoService.registrar(dto);
 
-        if (nombreExiste) {
-            //throw new ReglaNegocioException("Ya existe un producto con el nombre: " + dto.nombre());
-            return ResponseEntity.unprocessableContent().build();
-        }
-
-        Producto nuevoProducto = null;
-
-        try {
-            nuevoProducto = new Producto(dto.nombre(), dto.precio(), dto.stock());
-
-        } catch (ReglaNegocioException e) {
-
-            return ResponseEntity.unprocessableContent().build();
-
-        } catch (Exception e) {
-
-            return ResponseEntity.badRequest().build();
-        }
-
-        productos.add(nuevoProducto);
-
-        var productoCreado = new ProductoCreadoResponse(nuevoProducto.getCodigo(), nuevoProducto.getNombre(), nuevoProducto.getPrecio());
-
-        return new ResponseEntity<>(productoCreado, HttpStatus.CREATED);
-
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ProductoCreadoResponse(
+                        producto.getCodigo(),
+                        producto.getNombre(),
+                        producto.getPrecio()
+                ));
     }
 
 
@@ -71,37 +50,21 @@ public class ProductoController {
             @RequestParam(required = false) Integer stockMax
     ) {
 
-        var response = productos.stream()
+        List<ConsultaProductoRespose> productos = productoService.buscar(
+                codigo,
+                nombre,
+                estado,
+                precioMin,
+                precioMax,
+                stockMin,
+                stockMax
+        );
 
-                .filter(p -> codigo == null || p.getCodigo() == codigo)
-
-                .filter(p -> nombre == null ||
-                        p.getNombre().toLowerCase().contains(nombre.toLowerCase()))
-
-                .filter(p -> estado == null || p.getEstado() == estado)
-
-                .filter(p -> precioMin == null || p.getPrecio() >= precioMin)
-
-                .filter(p -> precioMax == null || p.getPrecio() <= precioMax)
-
-                .filter(p -> stockMin == null || p.getStock() >= stockMin)
-
-                .filter(p -> stockMax == null || p.getStock() <= stockMax)
-
-                .map(p -> new ConsultaProductoRespose(
-                        p.getCodigo(),
-                        p.getNombre(),
-                        p.getPrecio(),
-                        p.getStock(),
-                        p.getEstado()
-                ))
-                .toList();
-
-        if (response.isEmpty()) {
-                return ResponseEntity.notFound().build();
+        if (productos.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(productos);
     }
 
 
@@ -109,83 +72,25 @@ public class ProductoController {
     @GetMapping("/{codigo}")
     public ResponseEntity<ConsultaProductoRespose> consultar(@PathVariable int codigo) {
 
-        var producto = productos.stream()
-                .filter(p -> p.getCodigo() == codigo)
-                .findFirst();
-
-        if (producto.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        var response = new ConsultaProductoRespose(
-                producto.get().getCodigo(),
-                producto.get().getNombre(),
-                producto.get().getPrecio(),
-                producto.get().getStock(),
-                producto.get().getEstado()
-        );
-
-        return ResponseEntity.ok(response);
+        return productoService.buscarPorCodigo(codigo)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
+
+    @PutMapping("/{codigo}")
+    public ResponseEntity<Void> actualizar(
+            @PathVariable int codigo,
+            @RequestBody ActualizarProductoRequest request) {
+
+        productoService.actualizar(codigo, request);
+        return ResponseEntity.noContent().build();
+    }
 
     @DeleteMapping("/{codigo}")
     public ResponseEntity<Void> descontinuar(@PathVariable int codigo) {
 
-        var producto = productos.stream()
-                .filter(p -> p.getCodigo() == codigo)
-                .findFirst();
-
-        if (producto.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        producto.ifPresent(Producto::descontinuar);
+        productoService.descontinuar(codigo);
         return ResponseEntity.noContent().build();
     }
-
-    @PutMapping("/{codigo}")
-    public ResponseEntity<Void> actualizar(
-            @PathVariable long codigo,
-            @RequestBody ActualizarProductoRequest request
-    ) {
-
-        var producto = productos.stream()
-                .filter(p -> p.getCodigo() == codigo)
-                .findFirst();
-
-        if (producto.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        producto.ifPresent(p -> {
-                p.setPrecio(request.precio());
-                p.setNombre(request.nombre());
-        });
-
-        return ResponseEntity.noContent().build();
-    }
-
-    private static void cargarProductosIniciales() {
-        try {
-
-            productos = new ArrayList<>();
-
-            productos.add(new Producto("Laptop Lenovo IdeaPad 3", 2450000, 5));
-            productos.add(new Producto("Mouse Logitech Inalambrico", 85000, 30));
-            productos.add(new Producto("Teclado Mecanico Redragon", 195000, 12));
-            productos.add(new Producto("Monitor Samsung 24 Pulgadas", 920000, 7));
-            productos.add(new Producto("Disco Solido SSD Kingston 480GB", 210000, 18));
-            productos.add(new Producto("Memoria RAM DDR4 16GB Corsair", 265000, 10));
-            productos.add(new Producto("Audifonos Gamer HyperX", 175000, 20));
-            productos.add(new Producto("Impresora Epson EcoTank L3250", 1350000, 4));
-            productos.add(new Producto("Router TP Link Archer C6", 185000, 9));
-            productos.add(new Producto("Webcam Logitech HD 1080p", 320000, 6));
-
-        } catch (ReglaNegocioException e) {
-            System.out.println("Error cargando productos de prueba: " + e.getMessage());
-        }
-    }
-
-
 }
