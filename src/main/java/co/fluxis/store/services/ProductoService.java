@@ -15,17 +15,26 @@ import java.util.Optional;
 @Service
 public class ProductoService {
 
-    private final List<Producto> productos = new ArrayList<>();
+    private final static List<Producto> productos = new ArrayList<>();
+
+    public ProductoService() {
+
+        cargarProductosIniciales();
+
+    }
+
+
+    private  boolean existeProductoConNombre(String nombre){
+
+        return  productos.stream()
+                .anyMatch(p -> p.getNombre().equalsIgnoreCase(nombre));
+
+    }
 
     public Producto registrar(CrearProductoRequest dto) {
 
-        boolean nombreExiste = productos.stream()
-                .anyMatch(p -> p.getNombre().equalsIgnoreCase(dto.nombre()));
-
-        if (nombreExiste) {
-            throw new ReglaNegocioException(
-                    "Ya existe un producto con el nombre: " + dto.nombre()
-            );
+        if (existeProductoConNombre(dto.nombre())) {
+            throw new ReglaNegocioException("Ya existe un producto con el nombre: " + dto.nombre());
         }
 
         Producto producto = new Producto(
@@ -50,15 +59,12 @@ public class ProductoService {
 
         return productos.stream()
                 .filter(p -> codigo == null || p.getCodigo() == codigo)
-                .filter(p -> nombre == null ||
-                        p.getNombre().toLowerCase().contains(nombre.toLowerCase()))
+                .filter(p -> nombre == null || p.getNombre().toLowerCase().contains(nombre.toLowerCase()))
                 .filter(p -> estado == null || p.getEstado() == estado)
                 .filter(p -> precioMin == null || p.getPrecio() >= precioMin)
                 .filter(p -> precioMax == null || p.getPrecio() <= precioMax)
                 .filter(p -> stockMin == null || p.getStock() >= stockMin)
                 .filter(p -> stockMax == null || p.getStock() <= stockMax)
-
-                // 🔽 MAPE0 A DTO
                 .map(p -> new ConsultaProductoRespose(
                         p.getCodigo(),
                         p.getNombre(),
@@ -97,11 +103,36 @@ public class ProductoService {
         producto.descontinuar();
     }
 
-    public void actualizar(int codigo, ActualizarProductoRequest request) {
+    public void actualizar(int codigo, ActualizarProductoRequest dto) {
         var producto = buscar(codigo)
-                .orElseThrow();
+                .orElseThrow(() -> new ReglaNegocioException("Producto no encontrado"));
 
-        producto.setNombre(request.nombre());
-        producto.setPrecio(request.precio());
+        if (existeProductoConNombre(dto.nombre())) {
+            throw new ReglaNegocioException("Ya existe un producto con el nombre: " + dto.nombre());
+        }
+
+        producto.setNombre(dto.nombre());
+        producto.setPrecio(dto.precio());
+    }
+
+
+    private void cargarProductosIniciales() {
+        try {
+
+
+            productos.add(new Producto("Laptop Lenovo IdeaPad 3", 2450000, 5));
+            productos.add(new Producto("Mouse Logitech Inalambrico", 85000, 30));
+            productos.add(new Producto("Teclado Mecanico Redragon", 195000, 12));
+            productos.add(new Producto("Monitor Samsung 24 Pulgadas", 920000, 7));
+            productos.add(new Producto("Disco Solido SSD Kingston 480GB", 210000, 18));
+            productos.add(new Producto("Memoria RAM DDR4 16GB Corsair", 265000, 10));
+            productos.add(new Producto("Audifonos Gamer HyperX", 175000, 20));
+            productos.add(new Producto("Impresora Epson EcoTank L3250", 1350000, 4));
+            productos.add(new Producto("Router TP Link Archer C6", 185000, 9));
+            productos.add(new Producto("Webcam Logitech HD 1080p", 320000, 6));
+
+        } catch (ReglaNegocioException e) {
+            System.out.println("Error cargando productos de prueba: " + e.getMessage());
+        }
     }
 }
