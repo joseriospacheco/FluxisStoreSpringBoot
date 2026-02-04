@@ -28,11 +28,7 @@ public class ProductoController {
     @PostMapping
     public ResponseEntity<ProductoCreadoResponse> registrar(@Valid @RequestBody CrearProductoRequest dto) {
 
-        // Validar nombre duplicado
-        var nombreExiste = productos.stream()
-                .anyMatch(p -> p.getNombre().equalsIgnoreCase(dto.nombre()));
-
-        if (nombreExiste) {
+        if (existeProductoConNombre(dto.nombre())) {
             //throw new ReglaNegocioException("Ya existe un producto con el nombre: " + dto.nombre());
             return ResponseEntity.unprocessableContent().build();
         }
@@ -109,20 +105,20 @@ public class ProductoController {
     @GetMapping("/{codigo}")
     public ResponseEntity<ConsultaProductoRespose> consultar(@PathVariable int codigo) {
 
-        var producto = productos.stream()
+        var productoOp = productos.stream()
                 .filter(p -> p.getCodigo() == codigo)
                 .findFirst();
 
-        if (producto.isEmpty()) {
+        if (productoOp.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
         var response = new ConsultaProductoRespose(
-                producto.get().getCodigo(),
-                producto.get().getNombre(),
-                producto.get().getPrecio(),
-                producto.get().getStock(),
-                producto.get().getEstado()
+                productoOp.get().getCodigo(),
+                productoOp.get().getNombre(),
+                productoOp.get().getPrecio(),
+                productoOp.get().getStock(),
+                productoOp.get().getEstado()
         );
 
         return ResponseEntity.ok(response);
@@ -132,38 +128,56 @@ public class ProductoController {
     @DeleteMapping("/{codigo}")
     public ResponseEntity<Void> descontinuar(@PathVariable int codigo) {
 
-        var producto = productos.stream()
+        var productoOp = productos.stream()
                 .filter(p -> p.getCodigo() == codigo)
                 .findFirst();
 
-        if (producto.isEmpty()) {
+        if (productoOp.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        producto.ifPresent(Producto::descontinuar);
+        productoOp.ifPresent(Producto::descontinuar);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{codigo}")
     public ResponseEntity<Void> actualizar(
-            @PathVariable long codigo,
+            @PathVariable int codigo,
             @RequestBody ActualizarProductoRequest request
     ) {
 
-        var producto = productos.stream()
+        var productoOpt = productos.stream()
                 .filter(p -> p.getCodigo() == codigo)
                 .findFirst();
 
-        if (producto.isEmpty()) {
+        if (productoOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        producto.ifPresent(p -> {
-                p.setPrecio(request.precio());
-                p.setNombre(request.nombre());
+        if (existeProductoConNombre(request.nombre())) {
+            return ResponseEntity.unprocessableContent().build();
+        }
+
+
+        productoOpt.ifPresent(producto -> {
+
+            producto.setNombre(request.nombre());
+            producto.setPrecio(request.precio());
+
         });
 
+
         return ResponseEntity.noContent().build();
+    }
+
+
+
+
+    private  boolean existeProductoConNombre(String nombre){
+
+        return  productos.stream()
+                .anyMatch(p -> p.getNombre().equalsIgnoreCase(nombre));
+
     }
 
     private static void cargarProductosIniciales() {
