@@ -4,11 +4,13 @@ import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.ReglaNegocioException;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Random;
 
 @Getter
-public class Producto {
+public class Producto implements Serializable {
 
     private final int codigo;
     @Setter
@@ -68,4 +70,18 @@ public class Producto {
         if (this.stock == 0)
             this.estado = EstadoProducto.AGOTADO;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Producto)) return false;
+        Producto p = (Producto) o;
+        return codigo == p.codigo;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(codigo);
+    }
+
 }
