@@ -4,11 +4,13 @@ import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.ReglaNegocioException;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Random;
 
 @Getter
-public class Producto {
+public class Producto implements Serializable {
 
     private final int codigo;
     @Setter

@@ -3,15 +3,17 @@ package co.fluxis.store.controllers;
 import co.fluxis.store.dtos.requests.ActualizarProductoRequest;
 import co.fluxis.store.dtos.responses.ConsultaProductoRespose;
 import co.fluxis.store.dtos.requests.CrearProductoRequest;
-import co.fluxis.store.dtos.responses.ProductoCreadoResponse;
 import co.fluxis.store.entities.Producto;
 import co.fluxis.store.enums.EstadoProducto;
+import co.fluxis.store.exceptions.EntidadNoEncontradaException;
+import co.fluxis.store.exceptions.ReglaNegocioException;
 import co.fluxis.store.services.ProductoService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -25,22 +27,39 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductoCreadoResponse> registrar(
+    public ResponseEntity<ConsultaProductoRespose> registrar(
             @Valid @RequestBody CrearProductoRequest dto) {
 
-        Producto producto = productoService.registrar(dto);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ProductoCreadoResponse(
-                        producto.getCodigo(),
-                        producto.getNombre(),
-                        producto.getPrecio()
-                ));
+        try {
+
+            Producto producto = productoService.registrar(dto);
+
+            return ResponseEntity.created(URI.create(""))
+                    .body(new ConsultaProductoRespose(
+                            producto.getCodigo(),
+                            producto.getNombre(),
+                            producto.getPrecio(),
+                            producto.getStock(),
+                            producto.getEstado()
+                    ));
+
+        } catch (ReglaNegocioException en) {
+
+            return ResponseEntity.badRequest().build();
+
+        } catch (Exception e) {
+
+            return ResponseEntity.internalServerError().build();
+
+        }
+
+
     }
 
 
     @GetMapping
-    public ResponseEntity<List<ConsultaProductoRespose>> buscarProductos(
+    public ResponseEntity<List<ConsultaProductoRespose>> buscar(
             @RequestParam(required = false) Integer codigo,
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) EstadoProducto estado,
@@ -68,7 +87,6 @@ public class ProductoController {
     }
 
 
-
     @GetMapping("/{codigo}")
     public ResponseEntity<ConsultaProductoRespose> consultar(@PathVariable int codigo) {
 
@@ -83,14 +101,32 @@ public class ProductoController {
             @PathVariable int codigo,
             @RequestBody ActualizarProductoRequest request) {
 
-        productoService.actualizar(codigo, request);
-        return ResponseEntity.noContent().build();
+        try {
+            productoService.actualizar(codigo, request);
+            return ResponseEntity.noContent().build();
+
+        } catch (ReglaNegocioException en) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception enc) {
+            return ResponseEntity.badRequest().build();
+        }
+
+
     }
 
     @DeleteMapping("/{codigo}")
     public ResponseEntity<Void> descontinuar(@PathVariable int codigo) {
 
-        productoService.descontinuar(codigo);
-        return ResponseEntity.noContent().build();
+        try {
+
+            productoService.descontinuar(codigo);
+            return ResponseEntity.noContent().build();
+
+        } catch (ReglaNegocioException en) {
+            return ResponseEntity.badRequest().build();
+        } catch (EntidadNoEncontradaException enfe) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
+
