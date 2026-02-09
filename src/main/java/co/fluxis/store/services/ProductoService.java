@@ -2,7 +2,7 @@ package co.fluxis.store.services;
 
 import co.fluxis.store.dtos.requests.ActualizarProductoRequest;
 import co.fluxis.store.dtos.requests.CrearProductoRequest;
-import co.fluxis.store.dtos.responses.ConsultaProductoRespose;
+import co.fluxis.store.dtos.responses.ProductoRespose;
 import co.fluxis.store.entities.Producto;
 import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.ReglaNegocioException;
@@ -47,7 +47,7 @@ public class ProductoService {
         return producto;
     }
 
-    public List<ConsultaProductoRespose> buscar(
+    public List<ProductoRespose> buscar(
             Integer codigo,
             String nombre,
             EstadoProducto estado,
@@ -65,7 +65,7 @@ public class ProductoService {
                 .filter(p -> precioMax == null || p.getPrecio() <= precioMax)
                 .filter(p -> stockMin == null || p.getStock() >= stockMin)
                 .filter(p -> stockMax == null || p.getStock() <= stockMax)
-                .map(p -> new ConsultaProductoRespose(
+                .map(p -> new ProductoRespose(
                         p.getCodigo(),
                         p.getNombre(),
                         p.getPrecio(),
@@ -76,11 +76,11 @@ public class ProductoService {
     }
 
 
-    public Optional<ConsultaProductoRespose> buscarPorCodigo(int codigo) {
+    public Optional<ProductoRespose> buscarPorCodigo(int codigo) {
         return productos.stream()
                 .filter(p -> p.getCodigo() == codigo)
                 .findFirst()
-                .map(p -> new ConsultaProductoRespose(
+                .map(p -> new ProductoRespose(
                         p.getCodigo(),
                         p.getNombre(),
                         p.getPrecio(),

@@ -1,9 +1,8 @@
 package co.fluxis.store.controllers;
 
 import co.fluxis.store.dtos.requests.ActualizarProductoRequest;
-import co.fluxis.store.dtos.responses.ConsultaProductoRespose;
+import co.fluxis.store.dtos.responses.ProductoRespose;
 import co.fluxis.store.dtos.requests.CrearProductoRequest;
-import co.fluxis.store.dtos.responses.ProductoCreadoResponse;
 import co.fluxis.store.entities.Producto;
 import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.services.ProductoService;
@@ -25,22 +24,24 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductoCreadoResponse> registrar(
+    public ResponseEntity<ProductoRespose> registrar(
             @Valid @RequestBody CrearProductoRequest dto) {
 
         Producto producto = productoService.registrar(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ProductoCreadoResponse(
+                .body(new ProductoRespose(
                         producto.getCodigo(),
                         producto.getNombre(),
-                        producto.getPrecio()
+                        producto.getPrecio(),
+                        producto.getStock(),
+                        producto.getEstado()
                 ));
     }
 
 
     @GetMapping
-    public ResponseEntity<List<ConsultaProductoRespose>> buscarProductos(
+    public ResponseEntity<List<ProductoRespose>> buscarProductos(
             @RequestParam(required = false) Integer codigo,
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) EstadoProducto estado,
@@ -50,7 +51,7 @@ public class ProductoController {
             @RequestParam(required = false) Integer stockMax
     ) {
 
-        List<ConsultaProductoRespose> productos = productoService.buscar(
+        List<ProductoRespose> productos = productoService.buscar(
                 codigo,
                 nombre,
                 estado,
@@ -70,7 +71,7 @@ public class ProductoController {
 
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<ConsultaProductoRespose> consultar(@PathVariable int codigo) {
+    public ResponseEntity<ProductoRespose> consultar(@PathVariable int codigo) {
 
         return productoService.buscarPorCodigo(codigo)
                 .map(ResponseEntity::ok)
