@@ -6,6 +6,7 @@ import co.fluxis.store.dtos.responses.ProductoRespose;
 import co.fluxis.store.entities.Producto;
 import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.ReglaNegocioException;
+import co.fluxis.store.mappers.ProductoMapper;
 import co.fluxis.store.repositories.ProductoRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +17,11 @@ import java.util.Optional;
 public class ProductoService {
 
     private final ProductoRepository productoRepository;
+    private final ProductoMapper productoMapper;
 
-    public ProductoService(ProductoRepository productoRepository) {
+    public ProductoService(ProductoRepository productoRepository, ProductoMapper productoMapper) {
         this.productoRepository = productoRepository;
+        this.productoMapper = productoMapper;
     }
 
     public List<ProductoRespose> buscarProductos(
@@ -40,14 +43,7 @@ public class ProductoService {
                 stockMax
         );
 
-        return productos.stream()
-                .map(p -> new ProductoRespose(
-                        p.getCodigo(),
-                        p.getNombre(),
-                        p.getPrecio(),
-                        p.getStock(),
-                        p.getEstado()
-                )).toList();
+        return productoMapper.toResponseList(productos);
     }
 
     public ProductoRespose registrarProducto(CrearProductoRequest dto) throws ReglaNegocioException {
@@ -64,25 +60,12 @@ public class ProductoService {
 
         productoRepository.registrar(nuevoProducto);
 
-        return new ProductoRespose(
-                nuevoProducto.getCodigo(),
-                nuevoProducto.getNombre(),
-                nuevoProducto.getPrecio(),
-                nuevoProducto.getStock(),
-                nuevoProducto.getEstado()
-        );
+        return productoMapper.toResponse(nuevoProducto);
     }
 
     public Optional<ProductoRespose> consultarPorCodigo(int codigo) {
-        var producto = productoRepository.consultarPorCodigo(codigo);
-
-        return producto.map(p -> new ProductoRespose(
-                p.getCodigo(),
-                p.getNombre(),
-                p.getPrecio(),
-                p.getStock(),
-                p.getEstado()
-        ));
+        return productoRepository.consultarPorCodigo(codigo)
+                .map(productoMapper::toResponse);
     }
 
     public boolean descontinuarProducto(int codigo) {
