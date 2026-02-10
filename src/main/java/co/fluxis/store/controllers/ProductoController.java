@@ -5,6 +5,7 @@ import co.fluxis.store.dtos.responses.ProductoRespose;
 import co.fluxis.store.dtos.requests.CrearProductoRequest;
 import co.fluxis.store.entities.Producto;
 import co.fluxis.store.enums.EstadoProducto;
+import co.fluxis.store.exceptions.EntidadNoEncontradaException;
 import co.fluxis.store.services.ProductoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -69,7 +70,6 @@ public class ProductoController {
     }
 
 
-
     @GetMapping("/{codigo}")
     public ResponseEntity<ProductoRespose> consultar(@PathVariable int codigo) {
 
@@ -84,14 +84,38 @@ public class ProductoController {
             @PathVariable int codigo,
             @RequestBody ActualizarProductoRequest request) {
 
-        productoService.actualizar(codigo, request);
-        return ResponseEntity.noContent().build();
+        try {
+
+            if (productoService.actualizar(codigo, request)) {
+                return ResponseEntity.noContent().build();
+            }
+
+            return ResponseEntity.badRequest().build();
+
+        } catch (EntidadNoEncontradaException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+
+
     }
 
     @DeleteMapping("/{codigo}")
     public ResponseEntity<Void> descontinuar(@PathVariable int codigo) {
 
-        productoService.descontinuar(codigo);
-        return ResponseEntity.noContent().build();
+        try {
+
+            if (productoService.descontinuar(codigo)) {
+                return ResponseEntity.noContent().build();
+            }
+
+        } catch (EntidadNoEncontradaException ene) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().build();
+        }
+
+        return ResponseEntity.badRequest().build();
     }
 }

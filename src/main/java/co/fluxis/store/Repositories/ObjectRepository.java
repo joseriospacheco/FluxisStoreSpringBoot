@@ -344,6 +344,43 @@ public class ObjectRepository<T> {
         }
     }
 
+    /**
+     * Busca el último objeto que cumpla con el predicado y retorna su índice.
+     *
+     * <p>Similar a {@link #indexWhere(Predicate)}, pero busca desde el final de la
+     * colección hacia el inicio, retornando el índice de la última ocurrencia.</p>
+     *
+     * <h2>Ejemplo de uso:</h2>
+     * <pre>{@code
+     * // Encontrar el último usuario registrado con edad mayor a 30
+     * int ultimoIndice = repo.lastIndexWhere(u -> u.getEdad() > 30);
+     * }</pre>
+     *
+     * @param predicate Condición que debe cumplir el objeto buscado. No puede ser null.
+     * @return Índice del último objeto que cumple la condición (0-based), o -1 si ninguno cumple
+     * @throws IOException si ocurre un error al leer el archivo
+     * @throws IllegalArgumentException si el predicate es null
+     */
+    public int indexWhere(Predicate<? super T> predicate) throws IOException {
+        if (predicate == null) {
+            throw new IllegalArgumentException("El predicado no puede ser null");
+        }
+
+        try {
+            collection = getAll();
+
+            // Buscar desde el final hacia el inicio
+            for (int i = collection.size() - 1; i >= 0; i--) {
+                if (predicate.test(collection.get(i))) {
+                    return i;
+                }
+            }
+            return -1;
+
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Error al cargar la colección", e);
+        }
+    }
 
 
 
