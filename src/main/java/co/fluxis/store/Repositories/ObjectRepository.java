@@ -16,7 +16,7 @@ import java.util.function.Predicate;
  * @author José Ríos
  * @version 3.0
  */
-public class ObjectRepository<T> {
+public class ObjectRepository<T extends Serializable> implements Serializable {
 
     /**
      * Ruta del archivo donde se almacenará la colección de objetos
@@ -57,10 +57,6 @@ public class ObjectRepository<T> {
         if (collection.contains(object)) {
             throw new IllegalArgumentException("El objeto que intenta agregar ya existe en la colección.");
         }
-        if (!(object instanceof Serializable)) {
-            throw new IllegalArgumentException("La clase " + object.getClass().getName() +" debe implementar la interfaz Serializable para poder ser persistida");
-        }
-
 
         try {
             collection = getAll();
@@ -173,6 +169,11 @@ public class ObjectRepository<T> {
 
         try {
             collection = getAll();
+
+            if (collection.contains(object)) {
+                throw new IllegalArgumentException("El objeto que intenta agregar ya existe en la colección.");
+            }
+
             T previous = collection.set(index, object);
             persist();
             return previous;
@@ -195,6 +196,10 @@ public class ObjectRepository<T> {
     public boolean update(T object) throws IOException {
 
         Objects.requireNonNull(object, "El objeto no puede ser null");
+
+        if (collection.contains(object)) {
+            throw new IllegalArgumentException("El objeto que intenta agregar ya existe en la colección.");
+        }
 
         int index = collection.indexOf(object);
         if (index >= 0) {
@@ -238,41 +243,7 @@ public class ObjectRepository<T> {
         }
     }
 
-    /**
-     * Busca un objeto en la colección usando búsqueda binaria con su orden
-     * natural. El tipo T debe implementar Comparable. La colección debe estar
-     * previamente ordenada.
-     *
-     * @param key Objeto clave a buscar
-     * @return Optional conteniendo el objeto si se encuentra, o Optional vacío
-     * si no existe
-     * @throws IOException si ocurre un error de entrada/salida
-     * @throws IllegalArgumentException si key es null
-     * @throws ClassCastException si T no implementa Comparable
-     */
-    public Optional<T> find(T key) throws IOException {
-        if (key == null) {
-            throw new IllegalArgumentException("La clave de busqueda no puede ser null");
-        }
 
-        try {
-            collection = getAll();
-
-            int index = Collections.binarySearch(
-                    (List<Comparable<? super Comparable<?>>>) collection,
-                    (Comparable<? super Comparable<?>>) key
-            );
-
-            return index >= 0
-                    ? Optional.of(collection.get(index))
-                    : Optional.empty();
-
-        } catch (ClassCastException e) {
-            throw new IllegalStateException("La clase " + key.getClass().getSimpleName() + " debe implementar la interfaz Comparable para usar este metodo de busqueda");
-        } catch (ClassNotFoundException e) {
-            throw new IOException("Error al cargar la coleccion", e);
-        }
-    }
 
     /**
      * Filtra los elementos de la coleccion segun una condicion.
@@ -321,23 +292,6 @@ public class ObjectRepository<T> {
         try {
             collection = getAll();
             Collections.sort(collection, comparator);
-            persist();
-        } catch (ClassNotFoundException e) {
-            throw new IOException("Error al cargar la colección", e);
-        }
-    }
-
-    /**
-     * Ordena la colección usando el orden natural de los elementos y persiste
-     * los cambios. El tipo T debe implementar Comparable.
-     *
-     * @throws IOException si ocurre un error de entrada/salida
-     * @throws ClassCastException si T no implementa Comparable
-     */
-    public void sort() throws IOException {
-        try {
-            collection = getAll();
-            Collections.sort((List<Comparable<? super Comparable<?>>>) collection);
             persist();
         } catch (ClassNotFoundException e) {
             throw new IOException("Error al cargar la colección", e);
