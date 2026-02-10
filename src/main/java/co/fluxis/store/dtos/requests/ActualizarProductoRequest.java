@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-public record ActualizarProductoRequestDTO(
+public record ActualizarProductoRequest(
 
         @NotBlank
         @Size(min = 3, max = 100)

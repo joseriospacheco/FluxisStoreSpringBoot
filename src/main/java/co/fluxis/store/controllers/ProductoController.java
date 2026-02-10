@@ -1,13 +1,11 @@
 package co.fluxis.store.controllers;
 
-import co.fluxis.store.dtos.requests.ActualizarProductoRequestDTO;
-import co.fluxis.store.dtos.responses.ConsultaProductoResposeDTO;
-import co.fluxis.store.dtos.requests.CrearProductoRequestDTO;
-import co.fluxis.store.dtos.responses.ProductoCreadoResponseDTO;
-import co.fluxis.store.entities.Producto;
+import co.fluxis.store.dtos.requests.ActualizarProductoRequest;
+import co.fluxis.store.dtos.responses.ProductoRespose;
+import co.fluxis.store.dtos.requests.CrearProductoRequest;
 import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.ReglaNegocioException;
-import co.fluxis.store.repositories.ProductoRepository;
+import co.fluxis.store.services.ProductoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +17,14 @@ import java.util.List;
 @RequestMapping("api/productos")
 public class ProductoController {
 
-    private final ProductoRepository productoRepository;
-    public ProductoController(ProductoRepository productoRepository) {
-        this.productoRepository = productoRepository;
+    private final ProductoService productoService;
+
+    public ProductoController(ProductoService productoService) {
+        this.productoService = productoService;
     }
 
     @GetMapping
-    public ResponseEntity<List<ConsultaProductoResposeDTO>> buscarProductos(
+    public ResponseEntity<List<ProductoRespose>> buscarProductos(
             @RequestParam(required = false) Integer codigo,
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) EstadoProducto estado,
@@ -34,8 +33,7 @@ public class ProductoController {
             @RequestParam(required = false) Integer stockMin,
             @RequestParam(required = false) Integer stockMax
     ) {
-
-        var productos = productoRepository.buscarPorFiltros(
+        var productos = productoService.buscarProductos(
                 codigo,
                 nombre,
                 estado,
@@ -45,88 +43,38 @@ public class ProductoController {
                 stockMax
         );
 
-
-        var response = productos.stream()
-                .map(p -> new ConsultaProductoResposeDTO(
-                        p.getCodigo(),
-                        p.getNombre(),
-                        p.getPrecio(),
-                        p.getStock(),
-                        p.getEstado()
-                )).toList();
-
         if (productos.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(productos);
     }
 
-
     @PostMapping
-    public ResponseEntity<ProductoCreadoResponseDTO> registrar(
-            @Valid @RequestBody CrearProductoRequestDTO dto) {
-
-        // Validación de unicidad
-        if (productoRepository.existePorNombre(dto.nombre())) {
-            return ResponseEntity.unprocessableContent().build();
-        }
-
-        Producto nuevoProducto;
-
+    public ResponseEntity<ProductoRespose> registrar(
+            @Valid @RequestBody CrearProductoRequest dto) {
         try {
-            nuevoProducto = new Producto(
-                    dto.nombre(),
-                    dto.precio(),
-                    dto.stock()
-            );
-
-            productoRepository.registrar(nuevoProducto);
-            var productoCreado = new ProductoCreadoResponseDTO(
-                    nuevoProducto.getCodigo(),
-                    nuevoProducto.getNombre(),
-                    nuevoProducto.getPrecio()
-            );
-
+            var productoCreado = productoService.registrarProducto(dto);
             return new ResponseEntity<>(productoCreado, HttpStatus.CREATED);
         } catch (ReglaNegocioException e) {
             return ResponseEntity.unprocessableContent().build();
-
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-
-
     }
-
-
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<ConsultaProductoResposeDTO> consultar(@PathVariable int codigo) {
+    public ResponseEntity<ProductoRespose> consultar(@PathVariable int codigo) {
+        var producto = productoService.consultarPorCodigo(codigo);
 
-
-        var producto = productoRepository.consultarPorCodigo(codigo);
-
-        if (producto.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        var response = new ConsultaProductoResposeDTO(
-                producto.get().getCodigo(),
-                producto.get().getNombre(),
-                producto.get().getPrecio(),
-                producto.get().getStock(),
-                producto.get().getEstado()
-        );
-
-        return ResponseEntity.ok(response);
+        return producto
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
-
 
     @DeleteMapping("/{codigo}")
     public ResponseEntity<Void> descontinuarProducto(@PathVariable int codigo) {
-
-        var descontinuado = productoRepository.descontinuar(codigo);
+        boolean descontinuado = productoService.descontinuarProducto(codigo);
 
         if (descontinuado) {
             return ResponseEntity.noContent().build();
@@ -137,13 +85,11 @@ public class ProductoController {
     @PutMapping("/{codigo}")
     public ResponseEntity<Void> actualizarProducto(
             @PathVariable int codigo,
-            @RequestBody ActualizarProductoRequestDTO request
+            @RequestBody ActualizarProductoRequest request
     ) {
-
-        var actualizado = productoRepository.actualizar(codigo,request.nombre(), request.precio());
+        boolean actualizado = productoService.actualizarProducto(codigo, request);
 
         if (actualizado) {
-
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.badRequest().build();
