@@ -163,9 +163,8 @@ public class ObjectRepository<T extends Serializable> implements Serializable {
      * @throws IndexOutOfBoundsException si el índice está fuera de rango
      */
     public T update(int index, T object) throws IOException {
-        if (object == null) {
-            throw new IllegalArgumentException("No se puede actualizar con un objeto null");
-        }
+
+        Objects.requireNonNull(object, "No se puede actualizar con un objeto null");
 
         try {
             collection = getAll();
@@ -225,14 +224,10 @@ public class ObjectRepository<T extends Serializable> implements Serializable {
      * @throws IOException si ocurre un error de entrada/salida
      * @throws IllegalArgumentException si key o comparator son null
      */
-    public Optional<T> find(T key, Comparator<? super T> comparator)
-            throws IOException {
-        if (key == null) {
-            throw new IllegalArgumentException("La clave de búsqueda no puede ser null");
-        }
-        if (comparator == null) {
-            throw new IllegalArgumentException("El comparador no puede ser null");
-        }
+    public Optional<T> find(T key, Comparator<? super T> comparator) throws IOException {
+
+        Objects.requireNonNull(key, "La clave de búsqueda no puede ser null");
+        Objects.requireNonNull(comparator, "El comparador no puede ser null");
 
         try {
             collection = getAll();
@@ -322,7 +317,6 @@ public class ObjectRepository<T extends Serializable> implements Serializable {
 
         try {
             collection = getAll();
-
             // Buscar desde el final hacia el inicio
             for (int i = collection.size() - 1; i >= 0; i--) {
                 if (predicate.test(collection.get(i))) {
@@ -336,15 +330,13 @@ public class ObjectRepository<T extends Serializable> implements Serializable {
         }
     }
 
-
-
-
     /**
      * Obtiene la ruta del archivo de persistencia.
      *
      * @return Path representando la ruta del archivo
      */
     public Path getFilePath() {
+
         return filePath;
     }
 }
