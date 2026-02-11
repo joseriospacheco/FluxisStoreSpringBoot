@@ -24,7 +24,7 @@ public class Producto {
             throw new ReglaNegocioException("El nombre no puede ser nulo ni estar en blanco");
 
         if (precio <= PRECIO_MINIMO)
-            throw new ReglaNegocioException("El precio del producto no puede ser menor a $500 COP");
+            throw new ReglaNegocioException("El precio del producto no puede ser menor a "+PRECIO_MINIMO+" COP");
 
         if (stock < 0)
             throw new ReglaNegocioException("El stock del producto no puede ser menor que cero");
