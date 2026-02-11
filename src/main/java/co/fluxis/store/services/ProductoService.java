@@ -52,11 +52,12 @@ public class ProductoService {
             throw new ReglaNegocioException("Ya existe un producto con ese nombre");
         }
 
-        Producto nuevoProducto = new Producto(
-                dto.nombre(),
-                dto.precio(),
-                dto.stock()
-        );
+
+        /*
+        Producto nuevoProducto = productoMapper.toEntity(dto);
+        */
+
+        Producto nuevoProducto = new Producto(dto.nombre(),dto.precio(),dto.stock());
 
         productoRepository.registrar(nuevoProducto);
 

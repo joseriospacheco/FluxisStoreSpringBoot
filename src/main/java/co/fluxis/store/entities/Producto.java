@@ -23,7 +23,7 @@ public class Producto {
 
     }
 
-    public Producto(String nombre, double precio, int stock)  {
+    public Producto(String nombre, double precio, int stock) {
 
         if (precio <= 0) {
             throw new ReglaNegocioException("El precio del producto no puede ser menor o igual a cero");
@@ -59,7 +59,7 @@ public class Producto {
         this.codigo = codigo;
     }
 
-    public void setPrecio(double precio)  {
+    public void setPrecio(double precio) {
 
         if (precio <= 0) {
 
@@ -82,7 +82,7 @@ public class Producto {
     }
 
 
-    public void agregarAlStock(int cantidad)  {
+    public void agregarAlStock(int cantidad) {
 
         if (cantidad <= 0) {
             throw new ReglaNegocioException("La cantidad para agrgar al stock del producto " + nombre + "+ no puede ser menor o igual que cero");
@@ -90,7 +90,7 @@ public class Producto {
         this.stock += cantidad;
     }
 
-    public void removerDelStock(int cantidad)  {
+    public void removerDelStock(int cantidad) {
 
         if (this.stock >= cantidad) {
             this.stock -= cantidad;

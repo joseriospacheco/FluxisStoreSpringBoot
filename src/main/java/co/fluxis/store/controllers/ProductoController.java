@@ -59,6 +59,9 @@ public class ProductoController {
         } catch (ReglaNegocioException e) {
             return ResponseEntity.unprocessableContent().build();
         } catch (Exception e) {
+
+            System.err.println(e.getMessage());
+
             return ResponseEntity.badRequest().build();
         }
     }

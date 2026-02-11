@@ -3,6 +3,8 @@ package co.fluxis.store.repositories;
 import co.fluxis.store.entities.Producto;
 import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.ReglaNegocioException;
+import co.fluxis.store.mappers.PreparedStatementMapper;
+import co.fluxis.store.mappers.ResultSetMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -13,14 +15,15 @@ import java.util.Optional;
 
 @Repository
 public class ProductoRepository {
-
     private final DataSource dataSource; // ← Spring lo inyecta automáticamente
+    private final ResultSetMapper<Producto> productoMapper;
+    private final PreparedStatementMapper<Producto> psMapper;
 
     public ProductoRepository(DataSource dataSource) {
         this.dataSource = dataSource;
+        this.productoMapper = new ResultSetMapper<>(Producto.class);
+        this.psMapper = new PreparedStatementMapper<>(Producto.class);
     }
-
-
 
     public boolean actualizar(int codigo,String nombre, double precio) {
 
@@ -70,10 +73,14 @@ public class ProductoRepository {
         List<Producto> productos = new ArrayList<>();
         Producto producto;
 
-        try (Connection conn = dataSource.getConnection();
+        try {
+             Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             ResultSet rs = stmt.executeQuery(sql);
 
+            return productoMapper.mapResultSet(rs);
+
+            /*
             while (rs.next()) {
 
                 //producto = new Producto(rs.getString("nombre"), rs.getDouble("precio"), rs.getInt("stock"));
@@ -87,25 +94,36 @@ public class ProductoRepository {
 
                 productos.add(producto);
             }
+                    return productos;
+             */
 
         } catch (SQLException | ReglaNegocioException e) {
             throw new RuntimeException("Error al obtener productos: " + e.getMessage(), e);
         }
 
-        return productos;
+
     }
 
     public Producto registrar(Producto producto) {
 
-        String sql = "INSERT INTO productos (codigo, nombre, precio, stock) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO productos (codigo, nombre, precio, stock, estado) VALUES (?, ?, ?, ?,?)";
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
+
+            System.out.println(producto);
+
+            /*
             pstmt.setInt(1, producto.getCodigo());
             pstmt.setString(2, producto.getNombre());
             pstmt.setDouble(3, producto.getPrecio());
             pstmt.setInt(4, producto.getStock());
+            pstmt.setString(5, producto.getEstado());
+            */
+
+            psMapper.mapToPreparedStatement(producto, pstmt);
+
 
             int affectedRows = pstmt.executeUpdate();
 
@@ -116,7 +134,7 @@ public class ProductoRepository {
             return producto;
 
         } catch (SQLException e) {
-            throw new RuntimeException("Error al guardar producto", e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 
@@ -133,6 +151,10 @@ public class ProductoRepository {
             try (ResultSet rs = pstmt.executeQuery()) {
 
                 if (rs.next()) {
+
+
+                    /*
+
                     Producto producto = new Producto();
                     producto.setCodigo(rs.getInt("codigo"));
                     producto.setNombre(rs.getString("nombre"));
@@ -140,14 +162,18 @@ public class ProductoRepository {
                     producto.setStock(rs.getInt("stock"));
                     producto.setEstado(EstadoProducto.valueOf(rs.getString("estado")));
 
-                    return Optional.of(producto);
+                    */
+
+                    return Optional.of(productoMapper.mapRow(rs));
+
                 }
+                return Optional.empty();
             }
 
         } catch (SQLException | ReglaNegocioException e) {
             throw new RuntimeException("Error al consultar producto por codigo", e);
         }
-        return Optional.empty();
+
     }
 
     public List<Producto> buscarPorFiltros(
@@ -212,25 +238,28 @@ public class ProductoRepository {
 
             try (ResultSet rs = pstmt.executeQuery()) {
 
+                return productoMapper.mapResultSet(rs);
+
+                /*
+
                 while (rs.next()) {
                     Producto producto = new Producto();
                     producto.setCodigo(rs.getInt("codigo"));
                     producto.setNombre(rs.getString("nombre"));
                     producto.setPrecio(rs.getDouble("precio"));
                     producto.setStock(rs.getInt("stock"));
-                    producto.setEstado(
-                            EstadoProducto.valueOf(rs.getString("estado"))
-                    );
-
+                    producto.setEstado(EstadoProducto.valueOf(rs.getString("estado")));
                     productos.add(producto);
                 }
+
+                */
             }
 
         } catch (SQLException | ReglaNegocioException e) {
             throw new RuntimeException("Error al buscar productos por filtros", e);
         }
 
-        return productos;
+
     }
 
 
