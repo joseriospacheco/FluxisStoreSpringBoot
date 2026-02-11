@@ -7,6 +7,7 @@ import co.fluxis.store.entities.Producto;
 import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.EntidadNoEncontradaException;
 import co.fluxis.store.exceptions.ReglaNegocioException;
+import co.fluxis.store.mappers.ProductoMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,8 +18,10 @@ import java.util.Optional;
 public class ProductoService {
 
     private final static List<Producto> productos = new ArrayList<>();
+    private ProductoMapper productoMapper;
 
-    public ProductoService() {
+    public ProductoService(ProductoMapper productoMapper) {
+        this.productoMapper = productoMapper;
 
         cargarProductosIniciales();
 
@@ -32,7 +35,7 @@ public class ProductoService {
 
     }
 
-    public Producto registrar(CrearProductoRequest dto) {
+    public ProductoRespose registrar(CrearProductoRequest dto) {
 
         if (existeProductoConNombre(dto.nombre())) {
             throw new ReglaNegocioException("Ya existe un producto con el nombre: " + dto.nombre());
@@ -45,7 +48,7 @@ public class ProductoService {
         );
 
         productos.add(producto);
-        return producto;
+        return productoMapper.toRespose(producto);
     }
 
     public List<ProductoRespose> buscar(
@@ -66,13 +69,7 @@ public class ProductoService {
                 .filter(p -> precioMax == null || p.getPrecio() <= precioMax)
                 .filter(p -> stockMin == null || p.getStock() >= stockMin)
                 .filter(p -> stockMax == null || p.getStock() <= stockMax)
-                .map(p -> new ProductoRespose(
-                        p.getCodigo(),
-                        p.getNombre(),
-                        p.getPrecio(),
-                        p.getStock(),
-                        p.getEstado()
-                ))
+                .map(productoMapper::toRespose)
                 .toList();
     }
 
@@ -81,13 +78,7 @@ public class ProductoService {
         return productos.stream()
                 .filter(p -> p.getCodigo() == codigo)
                 .findFirst()
-                .map(p -> new ProductoRespose(
-                        p.getCodigo(),
-                        p.getNombre(),
-                        p.getPrecio(),
-                        p.getStock(),
-                        p.getEstado()
-                ));
+                .map(productoMapper::toRespose);
     }
 
 
