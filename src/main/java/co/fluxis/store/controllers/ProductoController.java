@@ -28,16 +28,10 @@ public class ProductoController {
     public ResponseEntity<ProductoRespose> registrar(
             @Valid @RequestBody CrearProductoRequest dto) {
 
-        Producto producto = productoService.registrar(dto);
+        ProductoRespose producto = productoService.registrar(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ProductoRespose(
-                        producto.getCodigo(),
-                        producto.getNombre(),
-                        producto.getPrecio(),
-                        producto.getStock(),
-                        producto.getEstado()
-                ));
+                .body(producto);
     }
 
 
