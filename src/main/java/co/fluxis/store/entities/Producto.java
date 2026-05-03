@@ -3,7 +3,10 @@ package co.fluxis.store.entities;
 import co.fluxis.store.enums.EstadoProducto;
 import co.fluxis.store.exceptions.ReglaNegocioException;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 
@@ -14,13 +17,14 @@ public class Producto {
     private double precio;
     private int stock;
     private EstadoProducto estado;
+    private LocalTime fechaRegistro;
+    private LocalDateTime  ultimaFechaActualizacion;
 
     public Producto() {
         this.codigo = 0;
         this.nombre = "";
         this.precio = 0;
         this.stock = 0;
-
     }
 
     public Producto(String nombre, double precio, int stock)  {
@@ -33,10 +37,14 @@ public class Producto {
             throw new ReglaNegocioException("El stock del producto no puede ser menor que cero");
         }
 
+        if (Objects.isNull(nombre) || nombre.isBlank())
+            throw new ReglaNegocioException("Ingrese el un nombre valido");
+
         this.codigo = generarCodigo();
         this.nombre = nombre;
         this.precio = precio;
         this.stock = stock;
+        this.fechaRegistro = LocalTime.now();
         this.estado = EstadoProducto.DISPONIBLE;
 
     }
@@ -118,5 +126,21 @@ public class Producto {
 
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+    public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
+        this.fechaRegistro = fechaRegistro;
+    }
+
+    public LocalDateTime getUltimaFechaActualizacion() {
+        return ultimaFechaActualizacion;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return ultimaFechaActualizacion;
+    }
+
+    public void setUltimaFechaActualizacion(LocalDateTime ultimaFechaActualizacion) {
+        this.ultimaFechaActualizacion = ultimaFechaActualizacion;
     }
 }

@@ -1,6 +1,6 @@
 package co.fluxis.store.exceptions;
 
-public class EntityNotFoundException extends Exception
+public class EntityNotFoundException extends RuntimeException
 {
     public EntityNotFoundException(String message)
     {
